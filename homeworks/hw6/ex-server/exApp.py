@@ -75,6 +75,16 @@ def index():
 def secret():
     return render_template("secret.html")
 
+# Creeate route for foo html
+@app.route("/foo")
+def foo():
+    return render_template("foo.html")
+
+# Creeate route for bar html
+@app.route("/bar")
+def bar():
+    return render_template("bar.html")
+
 
 @app.route("/login", methods = ["GET", "POST"])
 def login():
