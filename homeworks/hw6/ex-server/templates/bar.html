@@ -1,7 +1,13 @@
 {% extends "layout.html" %}
 
 {% block body %}
-<h2>Secret Information</h2>
-
-<p>Twitter stock isn't work $45.
+<h2>Author Selection</h2>
+<br>
+<p>The authors found...</p>
+<p id = "authorContent">{{ authorName }}</p>
+<hr>
+<h2>Keyword Selection</h2>
+<br>
+<p>The keywords found...</p>
+<p id = "keywordContent">{{ keyWord }}</p>
 {% endblock body %}

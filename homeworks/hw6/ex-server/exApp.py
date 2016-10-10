@@ -20,6 +20,13 @@ try:
 except:
     from flask_login import AnonymousUserMixin as AnonymousUser
 
+############################################################
+############################################################
+############################################################
+
+## Setup a class for Users, then global dict to store users
+## -> global dict of users is used to search for GET POST events
+
 class User(UserMixin):
     def __init__(self, name, id, active = True):
         self.name = name
@@ -33,7 +40,6 @@ class User(UserMixin):
 class Anonymous(AnonymousUser):
     name = u"Anonymous"
 
-
 USERS = {
     1 : User(u"Olives", 1),
     2 : User(u"JB", 2),
@@ -43,10 +49,45 @@ USERS = {
 USER_NAMES = dict((u.name, u) for u in USERS.values())
 
 
+############################################################
+############################################################
+############################################################
+
+# Here we create global dictonary of authors to search on
+# ...this part would be in a database
+#
+# Authors are created as class instances
+class Author:
+    def __init__(self, name, id):
+        self.name = name
+        self.id = id
+
+        # Maybe we could link the Author.id
+        # to a place (like a key) to the database
+        # where the actual papers associated with
+        # them would be.
+
+    def getId(self):
+        return self.id
+
+AUTHORSS = {
+    1 : Author(u"Getz", 1),
+    2 : Author(u"Darwin", 2),
+    3 : Author(u"Muellerklein", 3),
+}
+
+AUTHOR_NAMES = dict((u.name, u) for u in AUTHORSS.values())
+
+############################################################
+############################################################
+############################################################
+
+## Init the app
+
 app = Flask(__name__)
 Bootstrap(app)
 
-SECRET_KEY = "temp secrete key - please set"
+SECRET_KEY = "stars_and_moon"
 DEBUG = True
 
 app.config.from_object(__name__)
@@ -57,6 +98,12 @@ login_manager.anonymous_user = Anonymous
 login_manager.login_view = "login"
 login_manager.login_message = u"Please log in to access this page."
 login_manager.refresh_view = "reauth"
+
+############################################################
+############################################################
+############################################################
+
+## Setup Middleware / routes to each web page
 
 @login_manager.user_loader
 def load_user(id):
@@ -76,12 +123,30 @@ def secret():
     return render_template("secret.html")
 
 # Creeate route for foo html
-@app.route("/foo")
+@app.route("/foo", methods = ["GET", "POST"])
 def foo():
+    if request.method == "POST":
+        if "authorName" in request.form:
+            authorName = request.form["authorName"]
+        else:
+            authorName = False
+        if "keyWord" in request.form:
+            keyWordd = request.form["keyWord"]
+        else:
+            keyWordd = False
+
+        # Simple search if the string entered is in global dictonary
+        if authorName in AUTHOR_NAMES:
+            flash("Looking up author...")
+            return render_template("bar.html", authorName = authorName, keyWord = keyWordd)
+        else:
+            flash(u"Sorry - we could not find that author. Please enter an author. E.g. 'Getz', 'Darwin', 'Muellerklein' etc.")
+            return render_template("foo.html")
+
     return render_template("foo.html")
 
 # Creeate route for bar html
-@app.route("/bar")
+@app.route("/bar", methods = ["GET", "POST"])
 def bar():
     return render_template("bar.html")
 
