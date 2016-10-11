@@ -1,0 +1,27 @@
+{% extends "layout.html" %}
+
+{% block body %}
+<div class = "row">
+    <div class = "col-md-6">
+        <h2>Author Selection</h2>
+        <br>
+        <p>The authors found...</p>
+        <p id = "authorContent">{{ authorName }}</p>
+        <hr>
+        <h2>Keyword Selection</h2>
+        <br>
+        <p>The keywords found...</p>
+        <p id = "keywordContent">{{ keyWord }}</p>
+    </div>
+    <div class = "col-md-6">
+        <h2>File Upload Name</h2>
+        <br>
+        <p id = "fileNamee">{{ filenamee }}</p>
+        <hr>
+        <h2>File Upload Content</h2>
+        <br>
+        <p>Content found...</p>
+        <p id = "fileContent">{{ fileUpload }}</p>
+    </div>
+</div>
+{% endblock body %}

@@ -13,7 +13,10 @@ from flask_login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin,
                             confirm_login, fresh_login_required)
 
+from werkzeug import secure_filename
 from flask_bootstrap import Bootstrap
+import bibtexparser
+import os
 
 try:
     from flask_login import AnonymousUser
@@ -84,8 +87,11 @@ AUTHOR_NAMES = dict((u.name, u) for u in AUTHORSS.values())
 
 ## Init the app
 
+UPLOAD_FOLDER = '/tmp/'
+
 app = Flask(__name__)
 Bootstrap(app)
+app.config['UPLOAD_FOLDER'] = UPLOAD_FOLDER
 
 SECRET_KEY = "stars_and_moon"
 DEBUG = True
@@ -122,33 +128,67 @@ def index():
 def secret():
     return render_template("secret.html")
 
-# Creeate route for foo html
-@app.route("/foo", methods = ["GET", "POST"])
-def foo():
+# Creeate route for getQuery html
+@app.route("/getQuery", methods = ["GET", "POST"])
+def getQuery():
     if request.method == "POST":
-        if "authorName" in request.form:
-            authorName = request.form["authorName"]
-        else:
-            authorName = False
-        if "keyWord" in request.form:
-            keyWordd = request.form["keyWord"]
-        else:
-            keyWordd = False
+        if len(request.files) > 0:
 
-        # Simple search if the string entered is in global dictonary
-        if authorName in AUTHOR_NAMES:
-            flash("Looking up author...")
-            return render_template("bar.html", authorName = authorName, keyWord = keyWordd)
+            flash("Uploading BibTeX file...")
+            fileStruct = request.files['fileInput']
+
+            # check if the post request has the file part
+            if 'fileInput' not in request.files:
+                flash('No file part')
+                return redirect(request.url)
+
+            # if user does not select file, browser also
+            # submit a empty part without filename
+            if fileStruct.filename == '':
+                flash('No selected file')
+                return redirect(request.url)
+
+            if fileStruct.filename:
+                filename = secure_filename(fileStruct.filename)
+                fileStruct.save(os.path.join(app.config['UPLOAD_FOLDER'], filename))
+
+                # Add Bib file to relative path
+                absPathh = os.path.abspath(UPLOAD_FOLDER + filename)
+                with open(absPathh) as bibFile:
+                    bibString = bibFile.read()
+                bibDB = bibtexparser.loads(bibString)
+
+                return render_template("showQuery.html", authorName = False, keyWord = False, filenamee = filename, fileUpload = bibDB.entries[0])
+
         else:
-            flash(u"Sorry - we could not find that author. Please enter an author. E.g. 'Getz', 'Darwin', 'Muellerklein' etc.")
-            return render_template("foo.html")
 
-    return render_template("foo.html")
+            if "authorName" in request.form:
+                authorName = request.form["authorName"]
+            else:
+                authorName = False
+            if "keyWord" in request.form:
+                keyWordd = request.form["keyWord"]
+            else:
+                keyWordd = False
 
-# Creeate route for bar html
-@app.route("/bar", methods = ["GET", "POST"])
-def bar():
-    return render_template("bar.html")
+            # Simple search if the string entered is in global dictonary
+            if authorName in AUTHOR_NAMES:
+                flash("Looking up author...")
+                return render_template("showQuery.html", authorName = authorName, keyWord = keyWordd, filenamee = False, fileUpload = False)
+            else:
+                flash(u"Sorry - we could not find that author. Please enter an author. E.g. 'Getz', 'Darwin', 'Muellerklein' etc.")
+                return render_template("getQuery.html")
+
+    return render_template("getQuery.html")
+
+# Creeate route for showQuery html
+@app.route("/showQuery", methods = ["GET", "POST"])
+def showQuery():
+    #if request.method == "GET":
+    #    print("\nIn showQuery() for request GET")
+    #    print("fileUpload: ", fileUpload)
+    #    print("\n")
+    return render_template("showQuery.html")
 
 
 @app.route("/login", methods = ["GET", "POST"])

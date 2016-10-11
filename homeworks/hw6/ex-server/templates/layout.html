@@ -46,9 +46,8 @@
                             <li><a href = "/">Go home...</a></li>
                             <li class = "active"><a href = "#">here</a></li>
                             <li class = "divider"></li>
-                            <li class = "dropdown-header">Dropdown 2</li>
-                            <li><a href = "/foo">Go to foo...</a></li>
-                            <li><a href = "/bar">Go to bar...</a></li>
+                            <li class = "dropdown-header">Query Database</li>
+                            <li><a href = "/getQuery">Go to Query Page</a></li>
                         </ul>
                     </li>
                 </ul>
@@ -74,7 +73,7 @@
             </div>
             <div class = "col-md-4">
                 <div class = "page">
-                    <h1>Login Demo</h1>
+                    <h1>User Login</h1>
                     <div class = "metanav">
                     {% if (current_user.is_authenticated) %}
                       Welcome, {{ current_user.name }} | <a href="{{ url_for('logout') }}">log out</a>
