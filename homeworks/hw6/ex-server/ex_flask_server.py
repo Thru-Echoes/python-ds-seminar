@@ -1,13 +1,4 @@
 # -*- coding: utf-8 -*-
-"""
-Flask-Login example
-===================
-This is a small application that provides a trivial demonstration of
-Flask-Login, including remember me functionality.
-
-:copyright: (C) 2011 by Matthew Frazier.
-:license:   MIT/X11, see LICENSE for more details.
-"""
 from flask import Flask, request, render_template, redirect, url_for, flash
 from flask_login import (LoginManager, current_user, login_required,
                             login_user, logout_user, UserMixin,
@@ -15,8 +6,8 @@ from flask_login import (LoginManager, current_user, login_required,
 
 from werkzeug import secure_filename
 from flask_bootstrap import Bootstrap
-import bibtexparser
 import os
+from static.py.bibUtil import *
 
 try:
     from flask_login import AnonymousUser
@@ -128,9 +119,9 @@ def index():
 def secret():
     return render_template("secret.html")
 
-# Creeate route for getQuery html
-@app.route("/getQuery", methods = ["GET", "POST"])
-def getQuery():
+# Creeate route for fileupload html
+@app.route("/fileupload", methods = ["GET", "POST"])
+def fileupload():
     if request.method == "POST":
         if len(request.files) > 0:
 
@@ -154,32 +145,32 @@ def getQuery():
 
                 # Add Bib file to relative path
                 absPathh = os.path.abspath(UPLOAD_FOLDER + filename)
-                with open(absPathh) as bibFile:
-                    bibString = bibFile.read()
-                bibDB = bibtexparser.loads(bibString)
+                bibDB = bib_parse(absPathh)
 
-                return render_template("showQuery.html", authorName = False, keyWord = False, filenamee = filename, fileUpload = bibDB.entries[0])
+                if "collectName" in request.form:
+                    if (request.form["collectName"] == '') or (len(request.form["collectName"]) == 0):
+                        collectName = "Default"
+                    else:
+                        collectName = request.form["collectName"]
+                else:
+                    collectName = "Default"
+
+                # Simple search if the string entered is in global dictonary
+                #if authorName in AUTHOR_NAMES:
+                #    flash("Looking up author...")
+                #    return render_template("showQuery.html", authorName = authorName, keyWord = keyWordd, filenamee = False, fileUpload = False)
+                #else:
+                #    flash(u"Sorry - we could not find that author. Please enter an author. E.g. 'Getz', 'Darwin', 'Muellerklein' etc.")
+                #    return render_template("fileupload.html")
+
+                return render_template("showresults.html", collectName = collectName, filenamee = filename, fileUpload = bibDB[0])
 
         else:
+            # No file uploaded
+            flash("Please select a file and try again.")
+            return redirect(request.url)
 
-            if "authorName" in request.form:
-                authorName = request.form["authorName"]
-            else:
-                authorName = False
-            if "keyWord" in request.form:
-                keyWordd = request.form["keyWord"]
-            else:
-                keyWordd = False
-
-            # Simple search if the string entered is in global dictonary
-            if authorName in AUTHOR_NAMES:
-                flash("Looking up author...")
-                return render_template("showQuery.html", authorName = authorName, keyWord = keyWordd, filenamee = False, fileUpload = False)
-            else:
-                flash(u"Sorry - we could not find that author. Please enter an author. E.g. 'Getz', 'Darwin', 'Muellerklein' etc.")
-                return render_template("getQuery.html")
-
-    return render_template("getQuery.html")
+    return render_template("fileupload.html")
 
 # Creeate route for showQuery html
 @app.route("/showQuery", methods = ["GET", "POST"])
